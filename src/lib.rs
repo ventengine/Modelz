@@ -44,8 +44,10 @@ pub enum ModelError {
     UnknowFormat,
     // Given file does not exist
     FileNotExists,
-
+    // Error while loading general 3D File
     ModelParsing(String),
+    // Error loading Material
+    MaterialLoad(String),
 }
 
 fn get_format<P: AsRef<Path>>(path: &P) -> Result<ModelFormat, ModelError> {
@@ -72,10 +74,13 @@ pub struct Mesh {
 }
 
 pub struct Material {
+    pub diffuse_texture: Option<image::DynamicImage>,
+    pub base_color: Option<[f32; 4]>,
     pub name: Option<String>,
 }
 
 #[derive(Clone, Debug)]
+#[allow(dead_code)]
 pub struct Vertex {
     position: [f32; 3],
     tex_coord: Option<[f32; 2]>,

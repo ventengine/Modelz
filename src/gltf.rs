@@ -1,4 +1,8 @@
-use std::{fs, path::Path};
+use std::{
+    fs::{self, File},
+    io::BufReader,
+    path::Path,
+};
 
 use gltf::Mesh;
 
@@ -14,9 +18,7 @@ pub fn load(path: &Path) -> Result<Model3D, ModelError> {
 
     let mut materials = Vec::new();
     for material in gltf.document.materials() {
-        materials.push(crate::Material {
-            name: material.name().map(|s| s.to_string()),
-        })
+        materials.push(load_material(path, material, &buffer_data)?);
     }
 
     let mut meshes = Vec::new();
@@ -28,6 +30,62 @@ pub fn load(path: &Path) -> Result<Model3D, ModelError> {
         meshes,
         materials,
         format: crate::ModelFormat::GLTF,
+    })
+}
+
+fn load_material<'a>(
+    model_dir: &'a Path,
+    material: gltf::Material<'a>,
+    buffer_data: &'a [gltf::buffer::Data],
+) -> Result<crate::Material, ModelError> {
+    let pbr = material.pbr_metallic_roughness();
+
+    let diffuse_texture = if let Some(texture) = pbr.base_color_texture() {
+        match texture.texture().source().source() {
+            gltf::image::Source::View { view, mime_type } => {
+                let parent_buffer_data = &buffer_data[view.buffer().index()].0;
+                let begin = view.offset();
+                let end = begin + view.length();
+                let encoded_image = &parent_buffer_data[begin..end];
+
+                // let sampler = texture.texture().sampler();
+                let image = image::load_from_memory_with_format(
+                    encoded_image,
+                    image::ImageFormat::from_mime_type(mime_type)
+                        .expect("TODO: Replace with proper error handling"),
+                )
+                .map_err(|e| ModelError::MaterialLoad(e.to_string()))?;
+                Some(image)
+            }
+            gltf::image::Source::Uri { uri, mime_type } => {
+                // let sampler = texture.texture().sampler();
+
+                let image = if let Some(mime_type) = mime_type {
+                    image::load(
+                        BufReader::new(
+                            File::open(model_dir.join(uri))
+                                .map_err(|e| ModelError::MaterialLoad(e.to_string()))?,
+                        ),
+                        image::ImageFormat::from_mime_type(mime_type)
+                            .expect("TODO: Replace with proper error handling"),
+                    )
+                    .map_err(|e| ModelError::MaterialLoad(e.to_string()))?
+                } else {
+                    image::open(model_dir.join(uri))
+                        .map_err(|e| ModelError::MaterialLoad(e.to_string()))?
+                };
+
+                Some(image)
+            }
+        }
+    } else {
+        None
+    };
+
+    Ok(crate::Material {
+        diffuse_texture,
+        name: material.name().map(|s| s.to_string()),
+        base_color: Some(pbr.base_color_factor()),
     })
 }
 
@@ -91,18 +149,11 @@ fn load_primitive<'a>(
         }
     }
 
-    let indices = if let Some(indcies) = reader.read_indices() {
-        Some(match indcies {
-            gltf::mesh::util::ReadIndices::U8(indices) => Indices::U8(indices.collect::<Vec<_>>()),
-            gltf::mesh::util::ReadIndices::U16(indices) => {
-                Indices::U16(indices.collect::<Vec<_>>())
-            }
-            gltf::mesh::util::ReadIndices::U32(indices) => {
-                Indices::U32(indices.collect::<Vec<_>>())
-            }
-        })
-    } else {
-        None
-    };
+    let indices = reader.read_indices().map(|indcies| match indcies {
+        gltf::mesh::util::ReadIndices::U8(indices) => Indices::U8(indices.collect::<Vec<_>>()),
+        gltf::mesh::util::ReadIndices::U16(indices) => Indices::U16(indices.collect::<Vec<_>>()),
+        gltf::mesh::util::ReadIndices::U32(indices) => Indices::U32(indices.collect::<Vec<_>>()),
+    });
+
     (vertices, indices)
 }

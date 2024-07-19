@@ -8,22 +8,22 @@ pub fn load(path: &Path) -> Result<Model3D, ModelError> {
         Err(e) => return Err(ModelError::ModelParsing(format!("{}", e))),
     };
 
+    let path = path.parent().unwrap_or_else(|| Path::new("./"));
+
     let mut final_materials = Vec::new();
 
     let materials = match materials {
         Ok(r) => r,
         Err(e) => {
-            return Err(ModelError::ModelParsing(format!(
+            return Err(ModelError::MaterialLoad(format!(
                 "Failed to load MTL file, {}",
                 e
             )))
         }
     };
 
-    for mat in materials {
-        final_materials.push(crate::Material {
-            name: Some(mat.name),
-        })
+    for material in materials {
+        final_materials.push(load_material(&material, path)?)
     }
 
     let mut meshes = Vec::new();
@@ -49,6 +49,27 @@ pub fn load(path: &Path) -> Result<Model3D, ModelError> {
         meshes,
         materials: final_materials,
         format: crate::ModelFormat::OBJ,
+    })
+}
+
+fn load_material(
+    material: &tobj::Material,
+    model_dir: &Path,
+) -> Result<crate::Material, ModelError> {
+    let base_color = material.diffuse.as_ref().map(|d| [d[0], d[1], d[2], 1.0]);
+
+    let diffuse_texture = if let Some(texture) = &material.diffuse_texture {
+        match image::open(model_dir.join(texture)) {
+            Ok(image) => Some(image),
+            Err(err) => return Err(ModelError::MaterialLoad(err.to_string())),
+        }
+    } else {
+        None
+    };
+    Ok(crate::Material {
+        diffuse_texture,
+        base_color,
+        name: Some(material.name.clone()),
     })
 }
 
