@@ -1,4 +1,5 @@
 ### Modelz
+![crates.io](https://img.shields.io/crates/v/modelz.svg)
 
 Modelz is a Rust library to load various 3D file formats into a shared, in-memory representation.
 
