@@ -59,13 +59,18 @@ fn load_material(
     let base_color = material.diffuse.as_ref().map(|d| [d[0], d[1], d[2], 1.0]);
 
     let diffuse_texture = if let Some(texture) = &material.diffuse_texture {
-        match image::open(model_dir.join(texture)) {
+        let image = match image::open(model_dir.join(texture)) {
             Ok(image) => Some(image),
             Err(err) => return Err(ModelError::MaterialLoad(err.to_string())),
-        }
+        };
+        image.map(|image| crate::Texture {
+            image,
+            sampler: crate::Sampler::default(),
+        })
     } else {
         None
     };
+
     Ok(crate::Material {
         diffuse_texture,
         base_color,

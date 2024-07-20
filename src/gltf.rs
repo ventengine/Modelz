@@ -48,17 +48,20 @@ fn load_material<'a>(
                 let end = begin + view.length();
                 let encoded_image = &parent_buffer_data[begin..end];
 
-                // let sampler = texture.texture().sampler();
+                let sampler = texture.texture().sampler();
                 let image = image::load_from_memory_with_format(
                     encoded_image,
                     image::ImageFormat::from_mime_type(mime_type)
                         .expect("TODO: Replace with proper error handling"),
                 )
                 .map_err(|e| ModelError::MaterialLoad(e.to_string()))?;
-                Some(image)
+                Some(crate::Texture {
+                    image,
+                    sampler: convert_sampler(&sampler),
+                })
             }
             gltf::image::Source::Uri { uri, mime_type } => {
-                // let sampler = texture.texture().sampler();
+                let sampler = texture.texture().sampler();
 
                 let image = if let Some(mime_type) = mime_type {
                     image::load(
@@ -75,7 +78,10 @@ fn load_material<'a>(
                         .map_err(|e| ModelError::MaterialLoad(e.to_string()))?
                 };
 
-                Some(image)
+                Some(crate::Texture {
+                    image,
+                    sampler: convert_sampler(&sampler),
+                })
             }
         }
     } else {
@@ -87,6 +93,42 @@ fn load_material<'a>(
         name: material.name().map(|s| s.to_string()),
         base_color: Some(pbr.base_color_factor()),
     })
+}
+
+fn convert_sampler<'a>(sampler: &'a gltf::texture::Sampler<'a>) -> crate::Sampler {
+    let mag_filter = sampler.mag_filter().map(|filter| match filter {
+        gltf::texture::MagFilter::Nearest => crate::MagFilter::Nearest,
+        gltf::texture::MagFilter::Linear => crate::MagFilter::Linear,
+    });
+
+    let min_filter = sampler.min_filter().map(|filter| match filter {
+        gltf::texture::MinFilter::Nearest => crate::MinFilter::Nearest,
+        gltf::texture::MinFilter::Linear => crate::MinFilter::Linear,
+        gltf::texture::MinFilter::NearestMipmapNearest => crate::MinFilter::NearestMipmapNearest,
+        gltf::texture::MinFilter::LinearMipmapNearest => crate::MinFilter::LinearMipmapNearest,
+        gltf::texture::MinFilter::NearestMipmapLinear => crate::MinFilter::NearestMipmapLinear,
+        gltf::texture::MinFilter::LinearMipmapLinear => crate::MinFilter::LinearMipmapLinear,
+    });
+
+    let wrap_s = conv_wrapping_mode(sampler.wrap_s());
+    let wrap_t = conv_wrapping_mode(sampler.wrap_t());
+
+    crate::Sampler {
+        mag_filter,
+        min_filter,
+        wrap_s,
+        wrap_t,
+        name: sampler.name().map(|s| s.to_string())
+    }
+}
+
+#[must_use]
+const fn conv_wrapping_mode(mode: gltf::texture::WrappingMode) -> crate::WrappingMode {
+    match mode {
+        gltf::texture::WrappingMode::ClampToEdge => crate::WrappingMode::ClampToEdge,
+        gltf::texture::WrappingMode::MirroredRepeat => crate::WrappingMode::MirroredRepeat,
+        gltf::texture::WrappingMode::Repeat => crate::WrappingMode::Repeat,
+    }
 }
 
 // fn load_node(

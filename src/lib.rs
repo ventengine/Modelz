@@ -74,9 +74,64 @@ pub struct Mesh {
 }
 
 pub struct Material {
-    pub diffuse_texture: Option<image::DynamicImage>,
+    pub diffuse_texture: Option<Texture>,
     pub base_color: Option<[f32; 4]>,
     pub name: Option<String>,
+}
+
+pub struct Texture {
+    pub image: image::DynamicImage,
+    pub sampler: Sampler,
+}
+
+#[derive(Default)]
+pub struct Sampler {
+    pub mag_filter: Option<MagFilter>,
+    pub min_filter: Option<MinFilter>,
+    pub wrap_s: WrappingMode,
+    pub wrap_t: WrappingMode,
+    pub name: Option<String>,
+}
+
+pub enum MagFilter {
+    /// Corresponds to `GL_NEAREST`.
+    Nearest = 1,
+
+    /// Corresponds to `GL_LINEAR`.
+    Linear,
+}
+
+pub enum MinFilter {
+    /// Corresponds to `GL_NEAREST`.
+    Nearest = 1,
+
+    /// Corresponds to `GL_LINEAR`.
+    Linear,
+
+    /// Corresponds to `GL_NEAREST_MIPMAP_NEAREST`.
+    NearestMipmapNearest,
+
+    /// Corresponds to `GL_LINEAR_MIPMAP_NEAREST`.
+    LinearMipmapNearest,
+
+    /// Corresponds to `GL_NEAREST_MIPMAP_LINEAR`.
+    NearestMipmapLinear,
+
+    /// Corresponds to `GL_LINEAR_MIPMAP_LINEAR`.
+    LinearMipmapLinear,
+}
+
+#[derive(Default)]
+pub enum WrappingMode {
+    /// Corresponds to `GL_CLAMP_TO_EDGE`.
+    ClampToEdge = 1,
+
+    /// Corresponds to `GL_MIRRORED_REPEAT`.
+    MirroredRepeat,
+
+    /// Corresponds to `GL_REPEAT`.
+    #[default]
+    Repeat,
 }
 
 #[derive(Clone, Debug)]
