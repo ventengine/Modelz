@@ -7,6 +7,7 @@ description = "A library to load various 3D file formats into a shared, in-memor
 readme = "README.md"
 license = "MIT"
 keywords = ["model", "gltf", "obj", "assimp"]
+repository = "https://github.com/ventengine/Modelz"
 
 [badges]
 actively-developed = {}
