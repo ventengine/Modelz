@@ -1,6 +1,6 @@
 [package]
 name = "modelz"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2021"
 author = "Alexander Medvedev"
 description = "A library to load various 3D file formats into a shared, in-memory representation"
