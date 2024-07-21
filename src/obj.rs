@@ -22,13 +22,17 @@ pub fn load(path: &Path) -> Result<Model3D, ModelError> {
         }
     };
 
-    for material in materials {
-        final_materials.push(load_material(&material, path)?)
+    let len = materials.len();
+    for (i, material) in materials.iter().enumerate() {
+        log::debug!("Loading Material {} {}/{}", material.name, i, len - 1,);
+        final_materials.push(load_material(material, path)?)
     }
 
     let mut meshes = Vec::new();
 
-    for model in models {
+    let len = models.len();
+    for (i, model) in models.into_iter().enumerate() {
+        log::debug!("Loading Material {} {}/{}", model.name, i, len - 1,);
         let mesh = model.mesh;
         let vertices = load_mesh(&mesh);
         meshes.push(crate::Mesh {

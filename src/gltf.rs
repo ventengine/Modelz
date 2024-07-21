@@ -17,7 +17,14 @@ pub fn load(path: &Path) -> Result<Model3D, ModelError> {
         .expect("Failed to Load glTF Buffers");
 
     let mut materials = Vec::new();
-    for material in gltf.document.materials() {
+    let len = materials.len();
+    for (i, material) in gltf.document.materials().enumerate() {
+        log::debug!(
+            "Loading Material {} {}/{}",
+            material.name().unwrap_or("Unknown"),
+            i,
+            len - 1,
+        );
         materials.push(load_material(path, material, &buffer_data)?);
     }
 
@@ -118,7 +125,7 @@ fn convert_sampler<'a>(sampler: &'a gltf::texture::Sampler<'a>) -> crate::Sample
         min_filter,
         wrap_s,
         wrap_t,
-        name: sampler.name().map(|s| s.to_string())
+        name: sampler.name().map(|s| s.to_string()),
     }
 }
 
@@ -151,7 +158,12 @@ const fn conv_wrapping_mode(mode: gltf::texture::WrappingMode) -> crate::Wrappin
 
 fn load_mesh(mesh: Mesh, buffer_data: &[gltf::buffer::Data]) -> Vec<crate::Mesh> {
     let mut meshes = Vec::new();
-    for primitive in mesh.primitives() {
+    for (i, primitive) in mesh.primitives().enumerate() {
+        log::debug!(
+            "         Loading Mesh Primtive {}/{}",
+            i,
+            mesh.primitives().len()
+        );
         let (vertices, indices) = load_primitive(buffer_data, &primitive);
         meshes.push(crate::Mesh {
             vertices,
