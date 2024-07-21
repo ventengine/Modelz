@@ -48,14 +48,15 @@ fn load_material<'a>(
     let pbr = material.pbr_metallic_roughness();
 
     let diffuse_texture = if let Some(texture) = pbr.base_color_texture() {
-        match texture.texture().source().source() {
+        let texture = texture.texture();
+        match texture.source().source() {
             gltf::image::Source::View { view, mime_type } => {
                 let parent_buffer_data = &buffer_data[view.buffer().index()].0;
                 let begin = view.offset();
                 let end = begin + view.length();
                 let encoded_image = &parent_buffer_data[begin..end];
 
-                let sampler = texture.texture().sampler();
+                let sampler = texture.sampler();
                 let image = image::load_from_memory_with_format(
                     encoded_image,
                     image::ImageFormat::from_mime_type(mime_type)
@@ -65,10 +66,11 @@ fn load_material<'a>(
                 Some(crate::Texture {
                     image,
                     sampler: convert_sampler(&sampler),
+                    name: texture.name().map(|s| s.to_string())
                 })
             }
             gltf::image::Source::Uri { uri, mime_type } => {
-                let sampler = texture.texture().sampler();
+                let sampler = texture.sampler();
 
                 let image = if let Some(mime_type) = mime_type {
                     image::load(
@@ -88,6 +90,7 @@ fn load_material<'a>(
                 Some(crate::Texture {
                     image,
                     sampler: convert_sampler(&sampler),
+                    name: texture.name().map(|s| s.to_string())
                 })
             }
         }

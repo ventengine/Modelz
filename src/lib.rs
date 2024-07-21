@@ -85,6 +85,7 @@ pub struct Material {
 pub struct Texture {
     pub image: image::DynamicImage,
     pub sampler: Sampler,
+    pub name: Option<String>,
 }
 
 #[derive(Default)]

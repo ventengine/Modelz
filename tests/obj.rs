@@ -15,6 +15,9 @@ mod obj {
             }
         }
         for material in model.materials {
+            if let Some(diffuse) = material.diffuse_texture {
+                println!("{:?}", diffuse.name)
+            }
             println!("{}", material.name.unwrap_or("Unknown".to_string()))
         }
     }
