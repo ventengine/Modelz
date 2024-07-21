@@ -17,7 +17,7 @@ pub fn load(path: &Path) -> Result<Model3D, ModelError> {
         .expect("Failed to Load glTF Buffers");
 
     let mut materials = Vec::new();
-    let len = materials.len();
+    let len = gltf.document.materials().len();
     for (i, material) in gltf.document.materials().enumerate() {
         log::debug!(
             "Loading Material {} {}/{}",
