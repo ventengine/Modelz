@@ -138,6 +138,7 @@ pub enum WrappingMode {
     Repeat,
 }
 
+#[derive(Copy, Clone)]
 pub enum AlphaMode {
     /// The alpha value is ignored and the rendered output is fully opaque.
     Opaque = 1,
