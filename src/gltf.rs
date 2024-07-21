@@ -94,12 +94,25 @@ fn load_material<'a>(
     } else {
         None
     };
+    let alpha_mode = convert_alpha_mode(material.alpha_mode());
 
     Ok(crate::Material {
         diffuse_texture,
+        alpha_mode,
+        double_sided: material.double_sided(),
         name: material.name().map(|s| s.to_string()),
         base_color: Some(pbr.base_color_factor()),
+        alpha_cutoff: material.alpha_cutoff(),
     })
+}
+
+
+fn convert_alpha_mode(mode: gltf::material::AlphaMode) -> crate::AlphaMode {
+    match mode {
+        gltf::material::AlphaMode::Opaque => crate::AlphaMode::Opaque,
+        gltf::material::AlphaMode::Mask => crate::AlphaMode::Mask,
+        gltf::material::AlphaMode::Blend => crate::AlphaMode::Blend,
+    }
 }
 
 fn convert_sampler<'a>(sampler: &'a gltf::texture::Sampler<'a>) -> crate::Sampler {

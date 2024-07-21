@@ -75,6 +75,9 @@ pub struct Mesh {
 
 pub struct Material {
     pub diffuse_texture: Option<Texture>,
+    pub alpha_mode: AlphaMode,
+    pub alpha_cutoff: Option<f32>,
+    pub double_sided: bool,
     pub base_color: Option<[f32; 4]>,
     pub name: Option<String>,
 }
@@ -132,6 +135,19 @@ pub enum WrappingMode {
     /// Corresponds to `GL_REPEAT`.
     #[default]
     Repeat,
+}
+
+pub enum AlphaMode {
+    /// The alpha value is ignored and the rendered output is fully opaque.
+    Opaque = 1,
+
+    /// The rendered output is either fully opaque or fully transparent depending on
+    /// the alpha value and the specified alpha cutoff value.
+    Mask,
+
+    /// The alpha value is used, to determine the transparency of the rendered output.
+    /// The alpha cutoff value is ignored.
+    Blend,
 }
 
 #[derive(Clone, Debug)]

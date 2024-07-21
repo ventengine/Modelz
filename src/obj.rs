@@ -76,6 +76,9 @@ fn load_material(
     };
 
     Ok(crate::Material {
+        double_sided: false,
+        alpha_cutoff: material.dissolve,
+        alpha_mode: crate::AlphaMode::Opaque,
         diffuse_texture,
         base_color,
         name: Some(material.name.clone()),
