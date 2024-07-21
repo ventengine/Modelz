@@ -135,11 +135,10 @@ pub enum WrappingMode {
 }
 
 #[derive(Clone, Debug)]
-#[allow(dead_code)]
 pub struct Vertex {
-    position: [f32; 3],
-    tex_coord: Option<[f32; 2]>,
-    normal: Option<[f32; 3]>,
+    pub position: [f32; 3],
+    pub tex_coord: Option<[f32; 2]>,
+    pub normal: Option<[f32; 3]>,
 }
 
 #[derive(Clone, Debug)]
