@@ -24,7 +24,7 @@ pub fn load(path: &Path) -> Result<Model3D, ModelError> {
 
     let len = materials.len();
     for (i, material) in materials.iter().enumerate() {
-        log::debug!("Loading Material {} {}/{}", material.name, i, len - 1,);
+        log::debug!("Loading Material {} {}/{}", material.name, i + 1, len,);
         final_materials.push(load_material(material, path)?)
     }
 
@@ -32,7 +32,7 @@ pub fn load(path: &Path) -> Result<Model3D, ModelError> {
 
     let len = models.len();
     for (i, model) in models.into_iter().enumerate() {
-        log::debug!("Loading Material {} {}/{}", model.name, i, len - 1,);
+        log::debug!("Loading Material {} {}/{}", model.name, i + 1, len,);
         let mesh = model.mesh;
         let vertices = load_mesh(&mesh);
         meshes.push(crate::Mesh {

@@ -22,8 +22,8 @@ pub fn load(path: &Path) -> Result<Model3D, ModelError> {
         log::debug!(
             "Loading Material {} {}/{}",
             material.name().unwrap_or("Unknown"),
-            i,
-            len - 1,
+            i + 1,
+            len,
         );
         materials.push(load_material(path, material, &buffer_data)?);
     }
@@ -177,7 +177,7 @@ fn load_mesh(mesh: Mesh, buffer_data: &[gltf::buffer::Data]) -> Vec<crate::Mesh>
     for (i, primitive) in mesh.primitives().enumerate() {
         log::debug!(
             "         Loading Mesh Primtive {}/{}",
-            i,
+            i + 1,
             mesh.primitives().len()
         );
         let (vertices, indices) = load_primitive(buffer_data, &primitive);
