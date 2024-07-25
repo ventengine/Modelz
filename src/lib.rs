@@ -8,7 +8,13 @@ mod obj;
 mod stl;
 
 pub struct Model3D {
+    /// All meshes the Model has.
+    /// 
+    /// Some 3D Formats do not have multiple meshes and have just vertices, In this case there will be one Mesh with all the Vertices
     pub meshes: Vec<Mesh>,
+    /// All Materials the Model has.
+    /// 
+    /// Some 3D Formats do not support Materials/Textures, In this case the Vec will be empty
     pub materials: Vec<Material>,
 
     /// The format which was used to load the Model
@@ -16,11 +22,38 @@ pub struct Model3D {
 }
 
 impl Model3D {
+    /// Load an Full 3D Model from the Given File extension
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use modelz::Model3D;
+    ///
+    /// let model = Model3D::load("model.gltf");
+    ///
+    ///  for mesh in model.meshes {
+    ///     println!("{}", mesh.name.unwrap());
+    ///     for vert in mesh.vertices {
+    ///        println!("{:?}", vert)
+    ///     }
+    /// }
+    /// ```
     pub fn load<P: AsRef<Path>>(path: P) -> Result<Self, ModelError> {
         let format = get_format(&path)?;
         Self::from_format(path, format)
     }
 
+    /// Load an Full 3D Model from the Given `ModelFormat`
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use modelz::Model3D;
+    ///
+    /// let model = Model3D::from_format("model.gltf", ModelFormat::GLTF);
+    ///
+    /// let model = Model3D::from_format("model", ModelFormat::GLTF);
+    /// ```
     pub fn from_format<P: AsRef<Path>>(path: P, format: ModelFormat) -> Result<Self, ModelError> {
         match format {
             #[cfg(feature = "obj")]
@@ -34,6 +67,7 @@ impl Model3D {
 }
 
 #[non_exhaustive]
+/// `ModelFormat` represents the 3D Format being used to Load an File
 pub enum ModelFormat {
     #[cfg(feature = "obj")]
     // Wavefront obj, .obj
@@ -42,6 +76,7 @@ pub enum ModelFormat {
     // gltf 2.0, .gltf | .glb
     GLTF,
     // STL .stl
+    #[cfg(feature = "stl")]
     STL,
 }
 
@@ -63,7 +98,10 @@ fn get_format<P: AsRef<Path>>(path: &P) -> Result<ModelFormat, ModelError> {
         return Err(ModelError::FileNotExists);
     }
 
-    let extension = path.extension().and_then(|ext| ext.to_str()).unwrap_or("");
+    let extension = path
+        .extension()
+        .and_then(|ext| ext.to_str())
+        .expect("Failed to get File extension");
     match extension {
         #[cfg(feature = "obj")]
         "obj" => Ok(ModelFormat::OBJ),
@@ -76,25 +114,63 @@ fn get_format<P: AsRef<Path>>(path: &P) -> Result<ModelFormat, ModelError> {
 }
 
 pub struct Mesh {
+    /// All the Vertices the Mesh has.
     pub vertices: Vec<Vertex>,
     pub indices: Option<Indices>,
+    /// The index from the Vec Materials Vec in `Model3D`
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// let material = model.materials[mesh.material_index];
+    /// ```
     pub material_index: Option<usize>,
+    /// Name of the Mesh.
+    ///
+    /// Some File Formats do not support Mesh names, In this case this will be `None` 
     pub name: Option<String>,
 }
 
 #[non_exhaustive]
 pub struct Material {
+    /// The optional diffuse Texture
     pub diffuse_texture: Option<Texture>,
+    /// The alpha rendering mode of the material.  The material's alpha rendering
+    /// mode enumeration specifying the interpretation of the alpha value of the main
+    /// factor and texture.
     pub alpha_mode: AlphaMode,
+    ///  The Alpha cutoff value of the material.
     pub alpha_cutoff: Option<f32>,
+    /// Specifies whether the material is double-sided.
+    /// 
+    /// When disabled, back-face culling is enabled
+    /// When enabled, back-face culling is disabled
     pub double_sided: bool,
+    /// The Base color of the Material.
+    /// 
+    /// Usally used to mutiple the diffuse texture
+    /// 
+   /// Some File Formats do not support Material names, In this case this will be `None` 
+    /// # Examples
+    ///
+    /// ```
+    /// vec4 texture = texture(texture_diffuse, tex_coord) * material.base_color;
+    /// ```
     pub base_color: Option<[f32; 4]>,
+    /// Name of the Material.
+    ///
+    /// Some File Formats do not support Material names, In this case this will be `None` 
     pub name: Option<String>,
 }
 
 pub struct Texture {
+    /// The image from the `image` crate, Which is loaded into RAM
     pub image: image::DynamicImage,
+    /// Sampler which beining used on the Image
     pub sampler: Sampler,
+    /// Name of the Texture.
+    ///
+    /// Some File Formats do not support Texture names, In this case this will be `None` 
     pub name: Option<String>,
 }
 
@@ -107,6 +183,12 @@ pub struct Sampler {
     pub name: Option<String>,
 }
 
+/// Mag Filter
+/// 
+/// # Rendering
+/// 
+/// Vulkan: Corresponds to `vk::Filter`
+/// https://registry.khronos.org/vulkan/specs/1.3-extensions/man/html/VkFilter.html
 pub enum MagFilter {
     /// Corresponds to `GL_NEAREST`.
     Nearest = 1,
@@ -115,35 +197,48 @@ pub enum MagFilter {
     Linear,
 }
 
+/// Mag Filter
+/// 
+/// # Rendering
+/// 
+/// Vulkan: Corresponds to `vk::Filter` & `vk::SamplerMipmapMode`
+/// https://registry.khronos.org/vulkan/specs/1.3-extensions/man/html/VkFilter.html
+/// https://registry.khronos.org/vulkan/specs/1.3-extensions/man/html/VkSamplerMipmapMode.html
 pub enum MinFilter {
-    /// Corresponds to `GL_NEAREST`.
+    /// Corresponds to `GL_NEAREST` or vk::Filter::NEAREST.
     Nearest = 1,
 
-    /// Corresponds to `GL_LINEAR`.
+    /// Corresponds to `GL_LINEAR` or vk::Filter::LINEAR.
     Linear,
 
-    /// Corresponds to `GL_NEAREST_MIPMAP_NEAREST`.
+    /// Corresponds to `GL_NEAREST_MIPMAP_NEAREST` or (`vk::Filter::NEAREST`, `vk::SamplerMipmapMode::NEAREST`).
     NearestMipmapNearest,
 
-    /// Corresponds to `GL_LINEAR_MIPMAP_NEAREST`.
+    /// Corresponds to `GL_LINEAR_MIPMAP_NEAREST` or (`vk::Filter::LINEAR`, `vk::SamplerMipmapMode::NEAREST`).
     LinearMipmapNearest,
 
-    /// Corresponds to `GL_NEAREST_MIPMAP_LINEAR`.
+    /// Corresponds to `GL_NEAREST_MIPMAP_LINEAR` or (`vk::Filter::NEAREST`, `vk::SamplerMipmapMode::LINEAR`).
     NearestMipmapLinear,
 
-    /// Corresponds to `GL_LINEAR_MIPMAP_LINEAR`.
+    /// Corresponds to `GL_LINEAR_MIPMAP_LINEAR` or (`vk::Filter::LINEAR`, `vk::SamplerMipmapMode::LINEAR`).
     LinearMipmapLinear,
 }
 
 #[derive(Default)]
+/// Wrapping Mode
+/// 
+/// # Rendering
+/// 
+/// Vulkan: Corresponds to `vk::SamplerAddressMode`
+/// https://registry.khronos.org/vulkan/specs/1.3-extensions/man/html/VkSamplerAddressMode.html
 pub enum WrappingMode {
-    /// Corresponds to `GL_CLAMP_TO_EDGE`.
+    /// Corresponds to `GL_CLAMP_TO_EDGE` or `vk::SamplerAddressMode::CLAMP_TO_EDGE`.
     ClampToEdge = 1,
 
-    /// Corresponds to `GL_MIRRORED_REPEAT`.
+    /// Corresponds to `GL_MIRRORED_REPEAT` or `vk::SamplerAddressMode::MIRRORED_REPEAT.
     MirroredRepeat,
 
-    /// Corresponds to `GL_REPEAT`.
+    /// Corresponds to `GL_REPEAT` or `vk::SamplerAddressMode::REPEAT`.
     #[default]
     Repeat,
 }
@@ -170,6 +265,12 @@ pub struct Vertex {
 }
 
 #[derive(Clone, Debug)]
+/// Indicies
+/// 
+/// # Rendering
+/// 
+/// Vulkan: Corresponds to `vk::IndexType`
+/// https://registry.khronos.org/vulkan/specs/1.3-extensions/man/html/VkIndexType.html
 pub enum Indices {
     U8(Vec<u8>),
     U16(Vec<u16>),

@@ -9,7 +9,7 @@ mod gltf {
         let model = Model3D::from_format(model_path, modelz::ModelFormat::GLTF)
             .expect("Failed to load gltf model");
         for mesh in model.meshes {
-            println!("{}", mesh.name.unwrap()); // obj meshes have always a name
+            println!("{}", mesh.name.unwrap());
             for vert in mesh.vertices {
                 println!("{:?}", vert)
             }
