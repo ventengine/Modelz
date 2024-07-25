@@ -4,6 +4,8 @@ use std::path::Path;
 mod gltf;
 #[cfg(feature = "obj")]
 mod obj;
+#[cfg(feature = "stl")]
+mod stl;
 
 pub struct Model3D {
     pub meshes: Vec<Mesh>,
@@ -25,10 +27,13 @@ impl Model3D {
             ModelFormat::OBJ => return obj::load(path.as_ref()),
             #[cfg(feature = "gltf")]
             ModelFormat::GLTF => return gltf::load(path.as_ref()),
+            #[cfg(feature = "stl")]
+            ModelFormat::STL => return stl::load(path.as_ref()),
         }
     }
 }
 
+#[non_exhaustive]
 pub enum ModelFormat {
     #[cfg(feature = "obj")]
     // Wavefront obj, .obj
@@ -36,6 +41,8 @@ pub enum ModelFormat {
     #[cfg(feature = "gltf")]
     // gltf 2.0, .gltf | .glb
     GLTF,
+    // STL .stl
+    STL,
 }
 
 #[derive(Debug)]
@@ -62,6 +69,8 @@ fn get_format<P: AsRef<Path>>(path: &P) -> Result<ModelFormat, ModelError> {
         "obj" => Ok(ModelFormat::OBJ),
         #[cfg(feature = "gltf")]
         "gltf" | "glb" => Ok(ModelFormat::GLTF),
+        #[cfg(feature = "stl")]
+        "stl" => Ok(ModelFormat::STL),
         _ => Err(ModelError::UnknowFormat),
     }
 }
@@ -73,6 +82,7 @@ pub struct Mesh {
     pub name: Option<String>,
 }
 
+#[non_exhaustive]
 pub struct Material {
     pub diffuse_texture: Option<Texture>,
     pub alpha_mode: AlphaMode,

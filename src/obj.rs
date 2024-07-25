@@ -70,7 +70,7 @@ fn load_material(
         image.map(|image| crate::Texture {
             image,
             sampler: crate::Sampler::default(),
-            name: Some(texture.to_string())
+            name: Some(texture.to_string()),
         })
     } else {
         None

@@ -14,9 +14,10 @@ repository = "https://github.com/ventengine/Modelz"
 actively-developed = {}
 
 [features]
-default = ["obj", "gltf"]
+default = ["obj", "gltf", "stl"]
 obj = ["dep:tobj"]
 gltf = ["dep:gltf"]
+stl = ["dep:stl_io"]
 
 [dependencies]
 log = "0.4"
@@ -26,3 +27,5 @@ image = "0.25"
 gltf = {version = "1.4.0", optional = true }
 # OBJ Wavefront
 tobj = { version = "4.0.0", features = ["async"], optional = true }
+# STL
+stl_io = { version = "0.7.0", optional = true }

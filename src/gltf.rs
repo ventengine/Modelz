@@ -66,7 +66,7 @@ fn load_material<'a>(
                 Some(crate::Texture {
                     image,
                     sampler: convert_sampler(&sampler),
-                    name: texture.name().map(|s| s.to_string())
+                    name: texture.name().map(|s| s.to_string()),
                 })
             }
             gltf::image::Source::Uri { uri, mime_type } => {
@@ -90,7 +90,7 @@ fn load_material<'a>(
                 Some(crate::Texture {
                     image,
                     sampler: convert_sampler(&sampler),
-                    name: texture.name().map(|s| s.to_string())
+                    name: texture.name().map(|s| s.to_string()),
                 })
             }
         }
@@ -108,7 +108,6 @@ fn load_material<'a>(
         alpha_cutoff: material.alpha_cutoff(),
     })
 }
-
 
 fn convert_alpha_mode(mode: gltf::material::AlphaMode) -> crate::AlphaMode {
     match mode {
