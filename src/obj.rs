@@ -44,6 +44,7 @@ pub fn load(path: &Path) -> Result<Model3D, ModelError> {
                     Some(crate::Indices::U32(mesh.indices.clone())) // OBJ only has u32 indices
                 }
             },
+            mode: crate::RenderMode::TriangleFan,
             name: Some(model.name),
             material_index: mesh.material_id,
         })

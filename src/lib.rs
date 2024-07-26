@@ -9,11 +9,11 @@ mod stl;
 
 pub struct Model3D {
     /// All meshes the Model has.
-    /// 
+    ///
     /// Some 3D Formats do not have multiple meshes and have just vertices, In this case there will be one Mesh with all the Vertices
     pub meshes: Vec<Mesh>,
     /// All Materials the Model has.
-    /// 
+    ///
     /// Some 3D Formats do not support Materials/Textures, In this case the Vec will be empty
     pub materials: Vec<Material>,
 
@@ -116,7 +116,10 @@ fn get_format<P: AsRef<Path>>(path: &P) -> Result<ModelFormat, ModelError> {
 pub struct Mesh {
     /// All the Vertices the Mesh has.
     pub vertices: Vec<Vertex>,
+    /// All the Indices the Mesh has.
     pub indices: Option<Indices>,
+    /// The Render Mode that should be used to Render the Mesh
+    pub mode: RenderMode,
     /// The index from the Vec Materials Vec in `Model3D`
     ///
     /// # Examples
@@ -127,7 +130,7 @@ pub struct Mesh {
     pub material_index: Option<usize>,
     /// Name of the Mesh.
     ///
-    /// Some File Formats do not support Mesh names, In this case this will be `None` 
+    /// Some File Formats do not support Mesh names, In this case this will be `None`
     pub name: Option<String>,
 }
 
@@ -142,15 +145,15 @@ pub struct Material {
     ///  The Alpha cutoff value of the material.
     pub alpha_cutoff: Option<f32>,
     /// Specifies whether the material is double-sided.
-    /// 
+    ///
     /// When disabled, back-face culling is enabled
     /// When enabled, back-face culling is disabled
     pub double_sided: bool,
     /// The Base color of the Material.
-    /// 
+    ///
     /// Usally used to mutiple the diffuse texture
-    /// 
-   /// Some File Formats do not support Material names, In this case this will be `None` 
+    ///
+    /// Some File Formats do not support Material names, In this case this will be `None`
     /// # Examples
     ///
     /// ```
@@ -159,7 +162,7 @@ pub struct Material {
     pub base_color: Option<[f32; 4]>,
     /// Name of the Material.
     ///
-    /// Some File Formats do not support Material names, In this case this will be `None` 
+    /// Some File Formats do not support Material names, In this case this will be `None`
     pub name: Option<String>,
 }
 
@@ -170,7 +173,7 @@ pub struct Texture {
     pub sampler: Sampler,
     /// Name of the Texture.
     ///
-    /// Some File Formats do not support Texture names, In this case this will be `None` 
+    /// Some File Formats do not support Texture names, In this case this will be `None`
     pub name: Option<String>,
 }
 
@@ -184,26 +187,28 @@ pub struct Sampler {
 }
 
 /// Mag Filter
-/// 
+///
 /// # Rendering
-/// 
+///
 /// Vulkan: Corresponds to `vk::Filter`
 /// https://registry.khronos.org/vulkan/specs/1.3-extensions/man/html/VkFilter.html
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum MagFilter {
-    /// Corresponds to `GL_NEAREST`.
+    /// Corresponds to `GL_NEAREST` or `vk::Filter::NEAREST`.
     Nearest = 1,
 
-    /// Corresponds to `GL_LINEAR`.
+    /// Corresponds to `GL_LINEAR` or `vk::Filter::LINEAR`.
     Linear,
 }
 
 /// Mag Filter
-/// 
+///
 /// # Rendering
-/// 
+///
 /// Vulkan: Corresponds to `vk::Filter` & `vk::SamplerMipmapMode`
 /// https://registry.khronos.org/vulkan/specs/1.3-extensions/man/html/VkFilter.html
 /// https://registry.khronos.org/vulkan/specs/1.3-extensions/man/html/VkSamplerMipmapMode.html
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum MinFilter {
     /// Corresponds to `GL_NEAREST` or vk::Filter::NEAREST.
     Nearest = 1,
@@ -224,13 +229,13 @@ pub enum MinFilter {
     LinearMipmapLinear,
 }
 
-#[derive(Default)]
 /// Wrapping Mode
-/// 
+///
 /// # Rendering
-/// 
+///
 /// Vulkan: Corresponds to `vk::SamplerAddressMode`
 /// https://registry.khronos.org/vulkan/specs/1.3-extensions/man/html/VkSamplerAddressMode.html
+#[derive(Default, Clone, Copy, Debug, Eq, PartialEq)]
 pub enum WrappingMode {
     /// Corresponds to `GL_CLAMP_TO_EDGE` or `vk::SamplerAddressMode::CLAMP_TO_EDGE`.
     ClampToEdge = 1,
@@ -243,7 +248,7 @@ pub enum WrappingMode {
     Repeat,
 }
 
-#[derive(Copy, Clone)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum AlphaMode {
     /// The alpha value is ignored and the rendered output is fully opaque.
     Opaque = 1,
@@ -257,6 +262,36 @@ pub enum AlphaMode {
     Blend,
 }
 
+/// The type of primitives to render.
+///
+/// # Rendering
+///
+/// Vulkan: Corresponds to `vk::PrimitiveTopology`
+/// https://registry.khronos.org/vulkan/specs/1.3-extensions/man/html/VkPrimitiveTopology.html
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum RenderMode {
+    /// Corresponds to `GL_POINTS` or `vk::PrimitiveTopology::POINT_LIST`.
+    Points = 1,
+
+    /// Corresponds to `GL_LINES` or `vk::PrimitiveTopology::LINE_LIST`.
+    Lines,
+
+    /// Corresponds to `GL_LINE_LOOP or `vk::PrimitiveTopology::LINE_LIST``.
+    LineLoop,
+
+    /// Corresponds to `GL_LINE_STRIP` or `vk::PrimitiveTopology::LINE_STRIP`.
+    LineStrip,
+
+    /// Corresponds to `GL_TRIANGLES` or `vk::PrimitiveTopology::TRIANGLE_LIST.
+    Triangles,
+
+    /// Corresponds to `GL_TRIANGLE_STRIP`or `vk::PrimitiveTopology::TRIANGLE_STRIP.
+    TriangleStrip,
+
+    /// Corresponds to `GL_TRIANGLE_FAN` or `vk::PrimitiveTopology::TRIANGLE_FAN.
+    TriangleFan,
+}
+
 #[derive(Clone, Debug)]
 pub struct Vertex {
     pub position: [f32; 3],
@@ -266,9 +301,9 @@ pub struct Vertex {
 
 #[derive(Clone, Debug)]
 /// Indicies
-/// 
+///
 /// # Rendering
-/// 
+///
 /// Vulkan: Corresponds to `vk::IndexType`
 /// https://registry.khronos.org/vulkan/specs/1.3-extensions/man/html/VkIndexType.html
 pub enum Indices {

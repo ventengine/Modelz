@@ -109,14 +109,6 @@ fn load_material<'a>(
     })
 }
 
-fn convert_alpha_mode(mode: gltf::material::AlphaMode) -> crate::AlphaMode {
-    match mode {
-        gltf::material::AlphaMode::Opaque => crate::AlphaMode::Opaque,
-        gltf::material::AlphaMode::Mask => crate::AlphaMode::Mask,
-        gltf::material::AlphaMode::Blend => crate::AlphaMode::Blend,
-    }
-}
-
 fn convert_sampler<'a>(sampler: &'a gltf::texture::Sampler<'a>) -> crate::Sampler {
     let mag_filter = sampler.mag_filter().map(|filter| match filter {
         gltf::texture::MagFilter::Nearest => crate::MagFilter::Nearest,
@@ -132,8 +124,8 @@ fn convert_sampler<'a>(sampler: &'a gltf::texture::Sampler<'a>) -> crate::Sample
         gltf::texture::MinFilter::LinearMipmapLinear => crate::MinFilter::LinearMipmapLinear,
     });
 
-    let wrap_s = conv_wrapping_mode(sampler.wrap_s());
-    let wrap_t = conv_wrapping_mode(sampler.wrap_t());
+    let wrap_s = convert_wrapping_mode(sampler.wrap_s());
+    let wrap_t = convert_wrapping_mode(sampler.wrap_t());
 
     crate::Sampler {
         mag_filter,
@@ -145,11 +137,33 @@ fn convert_sampler<'a>(sampler: &'a gltf::texture::Sampler<'a>) -> crate::Sample
 }
 
 #[must_use]
-const fn conv_wrapping_mode(mode: gltf::texture::WrappingMode) -> crate::WrappingMode {
+const fn convert_alpha_mode(mode: gltf::material::AlphaMode) -> crate::AlphaMode {
+    match mode {
+        gltf::material::AlphaMode::Opaque => crate::AlphaMode::Opaque,
+        gltf::material::AlphaMode::Mask => crate::AlphaMode::Mask,
+        gltf::material::AlphaMode::Blend => crate::AlphaMode::Blend,
+    }
+}
+
+#[must_use]
+const fn convert_wrapping_mode(mode: gltf::texture::WrappingMode) -> crate::WrappingMode {
     match mode {
         gltf::texture::WrappingMode::ClampToEdge => crate::WrappingMode::ClampToEdge,
         gltf::texture::WrappingMode::MirroredRepeat => crate::WrappingMode::MirroredRepeat,
         gltf::texture::WrappingMode::Repeat => crate::WrappingMode::Repeat,
+    }
+}
+
+#[must_use]
+const fn convert_mode(mode: gltf::mesh::Mode) -> crate::RenderMode {
+    match mode {
+        gltf::mesh::Mode::Points => crate::RenderMode::Points,
+        gltf::mesh::Mode::Lines => crate::RenderMode::Lines,
+        gltf::mesh::Mode::LineLoop => crate::RenderMode::LineLoop,
+        gltf::mesh::Mode::LineStrip => crate::RenderMode::LineStrip,
+        gltf::mesh::Mode::Triangles => crate::RenderMode::Triangles,
+        gltf::mesh::Mode::TriangleStrip => crate::RenderMode::TriangleStrip,
+        gltf::mesh::Mode::TriangleFan => crate::RenderMode::TriangleFan,
     }
 }
 
@@ -183,6 +197,7 @@ fn load_mesh(mesh: Mesh, buffer_data: &[gltf::buffer::Data]) -> Vec<crate::Mesh>
         meshes.push(crate::Mesh {
             vertices,
             indices,
+            mode: convert_mode(primitive.mode()),
             material_index: primitive.material().index(),
             name: mesh.name().map(|s| s.to_string()),
         })

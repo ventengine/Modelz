@@ -37,6 +37,7 @@ pub fn load(path: &Path) -> Result<Model3D, ModelError> {
         vertices,
         indices: None,
         material_index: None,
+        mode: crate::RenderMode::TriangleFan,
         name: None,
     };
 
