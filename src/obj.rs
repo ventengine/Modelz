@@ -102,6 +102,18 @@ fn load_mesh(mesh: &tobj::Mesh) -> Vec<Vertex> {
                     Some([mesh.texcoords[i * 2], mesh.texcoords[i * 2 + 1]])
                 }
             },
+            color: {
+                if mesh.vertex_color.is_empty() {
+                    None
+                } else {
+                    Some([
+                        mesh.vertex_color[i * 3],
+                        mesh.vertex_color[i * 3 + 1],
+                        mesh.vertex_color[i * 3 + 2],
+                        0.0, // OBJ does not have vertex color alpha
+                    ])
+                }
+            },
             normal: {
                 if mesh.normals.is_empty() {
                     None

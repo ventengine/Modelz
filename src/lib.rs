@@ -295,6 +295,7 @@ pub enum RenderMode {
 #[derive(Clone, Debug)]
 pub struct Vertex {
     pub position: [f32; 3],
+    pub color: Option<[f32; 4]>, // rgba f32
     pub tex_coord: Option<[f32; 2]>,
     pub normal: Option<[f32; 3]>,
 }

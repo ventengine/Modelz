@@ -216,6 +216,7 @@ fn load_primitive<'a>(
         .unwrap()
         .map(|position| Vertex {
             position,
+            color: None,
             tex_coord: None,
             normal: None,
         })
@@ -224,6 +225,12 @@ fn load_primitive<'a>(
     if let Some(normal_attribute) = reader.read_normals() {
         for (normal_index, normal) in normal_attribute.enumerate() {
             vertices[normal_index].normal = Some(normal);
+        }
+    }
+
+    if let Some(color_attribute) = reader.read_colors(0).map(|v| v.into_rgba_f32()) {
+        for (color_index, color) in color_attribute.enumerate() {
+            vertices[color_index].color = Some(color);
         }
     }
 

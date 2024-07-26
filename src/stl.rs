@@ -16,16 +16,19 @@ pub fn load(path: &Path) -> Result<Model3D, ModelError> {
         let v1 = Vertex {
             position: [pos1[0], pos1[1], pos1[2]],
             tex_coord: None,
+            color: None,
             normal: Some(normal),
         };
         let v2 = Vertex {
             position: [pos2[0], pos2[1], pos2[2]],
             tex_coord: None,
+            color: None,
             normal: Some(normal),
         };
         let v3 = Vertex {
             position: [pos3[0], pos3[1], pos3[2]],
             tex_coord: None,
+            color: None,
             normal: Some(normal),
         };
 
