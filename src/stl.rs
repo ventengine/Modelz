@@ -3,7 +3,9 @@ use std::{fs::File, path::Path};
 use crate::{Model3D, ModelError, Vertex};
 
 pub fn load(path: &Path) -> Result<Model3D, ModelError> {
-    let stl = stl_io::read_stl(&mut File::open(path).unwrap()).unwrap();
+    let stl =
+        stl_io::read_stl(&mut File::open(path).map_err(|e| ModelError::OpenFile(e.to_string()))?)
+            .map_err(|e| ModelError::ModelParsing(e.to_string()))?;
 
     let mut vertices = Vec::new();
     for face in stl.faces {

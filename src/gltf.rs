@@ -9,7 +9,10 @@ use gltf::Mesh;
 use crate::{Indices, Model3D, ModelError, Vertex};
 
 pub fn load(path: &Path) -> Result<Model3D, ModelError> {
-    let gltf = gltf::Gltf::from_reader(fs::File::open(path).unwrap()).unwrap();
+    let gltf = gltf::Gltf::from_reader(
+        fs::File::open(path).map_err(|e| ModelError::OpenFile(e.to_string()))?,
+    )
+    .map_err(|e| ModelError::ModelParsing(e.to_string()))?;
 
     let path = path.parent().unwrap_or_else(|| Path::new("./"));
 

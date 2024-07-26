@@ -21,6 +21,7 @@ let model = Model3D::from_format("model", ModelFormat::OBJ).except("Failed to lo
 - [x] Wavefront OBJ
 - [x] glTF 2.0 
 - [x] STL
+- [x] PLY
 
 ### Contributing
 

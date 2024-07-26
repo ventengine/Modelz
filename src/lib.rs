@@ -5,6 +5,8 @@ mod gltf;
 #[cfg(feature = "obj")]
 mod obj;
 #[cfg(feature = "stl")]
+mod ply;
+#[cfg(feature = "ply")]
 mod stl;
 
 pub struct Model3D {
@@ -62,6 +64,8 @@ impl Model3D {
             ModelFormat::GLTF => return gltf::load(path.as_ref()),
             #[cfg(feature = "stl")]
             ModelFormat::STL => return stl::load(path.as_ref()),
+            #[cfg(feature = "ply")]
+            ModelFormat::PLY => return ply::load(path.as_ref()),
         }
     }
 }
@@ -75,9 +79,12 @@ pub enum ModelFormat {
     #[cfg(feature = "gltf")]
     // gltf 2.0, .gltf | .glb
     GLTF,
-    // STL .stl
     #[cfg(feature = "stl")]
+    // STL .stl
     STL,
+    #[cfg(feature = "ply")]
+    // Polygon File Format .ply
+    PLY,
 }
 
 #[derive(Debug)]
@@ -86,6 +93,8 @@ pub enum ModelError {
     UnknowFormat,
     // Given file does not exist
     FileNotExists,
+    // Failed to open file
+    OpenFile(String),
     // Error while loading general 3D File
     ModelParsing(String),
     // Error loading Material
