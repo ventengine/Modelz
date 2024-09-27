@@ -1086,9 +1086,9 @@ dependencies = [
 
 [[package]]
 name = "stl_io"
-version = "0.7.0"
+version = "0.8.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d520eb03e632e666ac32f3c0cf018ac6dcd535ab0be1420937e2d896f44f7cf7"
+checksum = "48e9d886254ce41380acd1bd72a7e2c22862607a99af4bb2380b05deb6d89c83"
 dependencies = [
  "byteorder",
  "float-cmp",
