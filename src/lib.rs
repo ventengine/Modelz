@@ -1,4 +1,4 @@
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 #[cfg(feature = "gltf")]
 mod gltf;
@@ -59,13 +59,13 @@ impl Model3D {
     pub fn from_format<P: AsRef<Path>>(path: P, format: ModelFormat) -> Result<Self, ModelError> {
         match format {
             #[cfg(feature = "obj")]
-            ModelFormat::OBJ => return obj::load(path.as_ref()),
+            ModelFormat::OBJ => obj::load(path.as_ref()),
             #[cfg(feature = "gltf")]
-            ModelFormat::GLTF => return gltf::load(path.as_ref()),
+            ModelFormat::GLTF => gltf::load(path.as_ref()),
             #[cfg(feature = "stl")]
-            ModelFormat::STL => return stl::load(path.as_ref()),
+            ModelFormat::STL => stl::load(path.as_ref()),
             #[cfg(feature = "ply")]
-            ModelFormat::PLY => return ply::load(path.as_ref()),
+            ModelFormat::PLY => ply::load(path.as_ref()),
         }
     }
 }
@@ -177,13 +177,24 @@ pub struct Material {
 
 pub struct Texture {
     /// The image from the `image` crate, Which is loaded into RAM
-    pub image: image::DynamicImage,
+    pub image: Image,
     /// Sampler which beining used on the Image
     pub sampler: Sampler,
     /// Name of the Texture.
     ///
     /// Some File Formats do not support Texture names, In this case this will be `None`
     pub name: Option<String>,
+}
+
+pub enum Image {
+    Memory {
+        data: Vec<u8>,
+        mime_type: Option<String>,
+    },
+    Path {
+        path: PathBuf,
+        mime_type: Option<String>,
+    },
 }
 
 #[derive(Default)]

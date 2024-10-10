@@ -6,7 +6,7 @@ author = "Alexander Medvedev"
 description = "A library to load various 3D file formats into a shared, in-memory representation"
 readme = "README.md"
 license = "MIT"
-keywords = ["model", "gltf", "obj", "assimp"]
+keywords = ["model", "gltf", "obj", "assimp", "ply", "stl"]
 categories = ["rendering::data-formats", "graphics", "game-development"]
 repository = "https://github.com/ventengine/Modelz"
 
@@ -23,12 +23,11 @@ ply = ["dep:ply-rs"]
 
 [dependencies]
 log = "0.4"
-image = "0.25"
 
 # glTF 2.0
 gltf = {version = "1.4.0", optional = true }
 # OBJ Wavefront
-tobj = { version = "4.0.0", features = ["async"], optional = true }
+tobj = { version = "4.0.0", default-features = false, features = ["async"], optional = true }
 # STL
 stl_io = { version = "0.8.0", optional = true }
 # PLY

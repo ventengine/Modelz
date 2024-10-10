@@ -4,7 +4,7 @@
 [Latest Version]: https://img.shields.io/crates/v/modelz.svg
 [crates.io]: https://crates.io/crates/modelz
 
-Modelz is a Rust library to load various 3D file formats into a shared, in-memory representation.
+Modelz is a Rust library to load various 3D file formats into a shared, in-memory representation. With minimal depenencies and fast performance
 
 ### Getting Started
 You can fully load an 3D Model/Scene using just one line of code

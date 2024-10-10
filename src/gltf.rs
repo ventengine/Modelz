@@ -1,6 +1,5 @@
 use std::{
-    fs::{self, File},
-    io::BufReader,
+    fs::{self},
     path::Path,
 };
 
@@ -60,12 +59,10 @@ fn load_material<'a>(
                 let encoded_image = &parent_buffer_data[begin..end];
 
                 let sampler = texture.sampler();
-                let image = image::load_from_memory_with_format(
-                    encoded_image,
-                    image::ImageFormat::from_mime_type(mime_type)
-                        .expect("TODO: Replace with proper error handling"),
-                )
-                .map_err(|e| ModelError::MaterialLoad(e.to_string()))?;
+                let image = crate::Image::Memory {
+                    data: encoded_image.to_vec(), // idk
+                    mime_type: Some(mime_type.to_string()),
+                };
                 Some(crate::Texture {
                     image,
                     sampler: convert_sampler(&sampler),
@@ -75,19 +72,9 @@ fn load_material<'a>(
             gltf::image::Source::Uri { uri, mime_type } => {
                 let sampler = texture.sampler();
 
-                let image = if let Some(mime_type) = mime_type {
-                    image::load(
-                        BufReader::new(
-                            File::open(model_dir.join(uri))
-                                .map_err(|e| ModelError::MaterialLoad(e.to_string()))?,
-                        ),
-                        image::ImageFormat::from_mime_type(mime_type)
-                            .expect("TODO: Replace with proper error handling"),
-                    )
-                    .map_err(|e| ModelError::MaterialLoad(e.to_string()))?
-                } else {
-                    image::open(model_dir.join(uri))
-                        .map_err(|e| ModelError::MaterialLoad(e.to_string()))?
+                let image = crate::Image::Path {
+                    path: model_dir.join(uri),
+                    mime_type: mime_type.map(|s| s.to_string()),
                 };
 
                 Some(crate::Texture {
