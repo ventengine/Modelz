@@ -5,7 +5,7 @@ use crate::{Model3D, ModelError, Vertex};
 pub fn load(path: &Path) -> Result<Model3D, ModelError> {
     let (models, materials) = match tobj::load_obj(path, &tobj::GPU_LOAD_OPTIONS) {
         Ok(r) => r,
-        Err(e) => return Err(ModelError::ModelParsing(format!("{}", e))),
+        Err(e) => return Err(ModelError::ModelParsing(format!("{e}"))),
     };
 
     let path = path.parent().unwrap_or_else(|| Path::new("./"));
@@ -16,16 +16,15 @@ pub fn load(path: &Path) -> Result<Model3D, ModelError> {
         Ok(r) => r,
         Err(e) => {
             return Err(ModelError::MaterialLoad(format!(
-                "Failed to load MTL file, {}",
-                e
+                "Failed to load MTL file, {e}"
             )))
         }
     };
 
     let len = materials.len();
-    for (i, material) in materials.iter().enumerate() {
+    for (i, material) in materials.into_iter().enumerate() {
         log::debug!("Loading Material {} {}/{}", material.name, i + 1, len,);
-        final_materials.push(load_material(material, path)?)
+        final_materials.push(load_material(material, path));
     }
 
     let mut meshes = Vec::new();
@@ -47,7 +46,7 @@ pub fn load(path: &Path) -> Result<Model3D, ModelError> {
             mode: crate::RenderMode::TriangleFan,
             name: Some(model.name),
             material_index: mesh.material_id,
-        })
+        });
     }
 
     Ok(Model3D {
@@ -57,34 +56,29 @@ pub fn load(path: &Path) -> Result<Model3D, ModelError> {
     })
 }
 
-fn load_material(
-    material: &tobj::Material,
-    model_dir: &Path,
-) -> Result<crate::Material, ModelError> {
+fn load_material(material: tobj::Material, model_dir: &Path) -> crate::Material {
     let base_color = material.diffuse.as_ref().map(|d| [d[0], d[1], d[2], 1.0]);
 
-    let diffuse_texture = if let Some(texture) = &material.diffuse_texture {
+    let diffuse_texture = material.diffuse_texture.map(|ref texture| {
         let image = crate::Image::Path {
             path: model_dir.join(texture),
             mime_type: None,
         };
-        Some(crate::Texture {
+        crate::Texture {
             image,
             sampler: crate::Sampler::default(),
             name: Some(texture.to_string()),
-        })
-    } else {
-        None
-    };
+        }
+    });
 
-    Ok(crate::Material {
+    crate::Material {
         double_sided: false,
         alpha_cutoff: material.dissolve,
         alpha_mode: crate::AlphaMode::Opaque,
         diffuse_texture,
         base_color,
-        name: Some(material.name.clone()),
-    })
+        name: Some(material.name),
+    }
 }
 
 fn load_mesh(mesh: &tobj::Mesh) -> Vec<Vertex> {

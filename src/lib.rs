@@ -1,3 +1,11 @@
+#![deny(clippy::all)]
+#![warn(clippy::pedantic)]
+#![warn(clippy::nursery)]
+#![warn(clippy::cargo)]
+#![expect(clippy::single_call_fn)]
+#![expect(clippy::exhaustive_enums)]
+#![expect(clippy::exhaustive_structs)]
+
 use std::path::{Path, PathBuf};
 
 #[cfg(feature = "gltf")]
@@ -40,9 +48,13 @@ impl Model3D {
     ///     }
     /// }
     /// ```
+    ///
+    /// # Errors
+    ///
+    /// Returns an Error is loading the Model was unsuccessful
     pub fn load<P: AsRef<Path>>(path: P) -> Result<Self, ModelError> {
         let format = get_format(&path)?;
-        Self::from_format(path, format)
+        Self::from_format(path, &format)
     }
 
     /// Load an Full 3D Model from the Given `ModelFormat`
@@ -56,7 +68,10 @@ impl Model3D {
     ///
     /// let model = Model3D::from_format("model", ModelFormat::GLTF);
     /// ```
-    pub fn from_format<P: AsRef<Path>>(path: P, format: ModelFormat) -> Result<Self, ModelError> {
+    /// # Errors
+    ///
+    /// Returns an Error is loading the Model was unsuccessful
+    pub fn from_format<P: AsRef<Path>>(path: P, format: &ModelFormat) -> Result<Self, ModelError> {
         match format {
             #[cfg(feature = "obj")]
             ModelFormat::OBJ => obj::load(path.as_ref()),
@@ -88,6 +103,7 @@ pub enum ModelFormat {
 }
 
 #[derive(Debug)]
+#[non_exhaustive]
 pub enum ModelError {
     // Format is not supported for you may have to enable it as a crate feature
     UnknowFormat,
@@ -109,7 +125,7 @@ fn get_format<P: AsRef<Path>>(path: &P) -> Result<ModelFormat, ModelError> {
 
     let extension = path
         .extension()
-        .and_then(|ext| ext.to_str())
+        .and_then(|ext| return ext.to_str())
         .expect("Failed to get File extension");
     match extension {
         #[cfg(feature = "obj")]
@@ -211,7 +227,7 @@ pub struct Sampler {
 /// # Rendering
 ///
 /// Vulkan: Corresponds to `vk::Filter`
-/// https://registry.khronos.org/vulkan/specs/1.3-extensions/man/html/VkFilter.html
+/// <https://registry.khronos.org/vulkan/specs/1.3-extensions/man/html/VkFilter.html>
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum MagFilter {
     /// Corresponds to `GL_NEAREST` or `vk::Filter::NEAREST`.
@@ -226,14 +242,14 @@ pub enum MagFilter {
 /// # Rendering
 ///
 /// Vulkan: Corresponds to `vk::Filter` & `vk::SamplerMipmapMode`
-/// https://registry.khronos.org/vulkan/specs/1.3-extensions/man/html/VkFilter.html
-/// https://registry.khronos.org/vulkan/specs/1.3-extensions/man/html/VkSamplerMipmapMode.html
+/// <https://registry.khronos.org/vulkan/specs/1.3-extensions/man/html/VkFilter.html>
+/// <https://registry.khronos.org/vulkan/specs/1.3-extensions/man/html/VkSamplerMipmapMode.html>
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum MinFilter {
-    /// Corresponds to `GL_NEAREST` or vk::Filter::NEAREST.
+    /// Corresponds to `GL_NEAREST` or `vk::Filter::NEAREST`.
     Nearest = 1,
 
-    /// Corresponds to `GL_LINEAR` or vk::Filter::LINEAR.
+    /// Corresponds to `GL_LINEAR` or `vk::Filter::LINEAR`.
     Linear,
 
     /// Corresponds to `GL_NEAREST_MIPMAP_NEAREST` or (`vk::Filter::NEAREST`, `vk::SamplerMipmapMode::NEAREST`).
@@ -254,13 +270,13 @@ pub enum MinFilter {
 /// # Rendering
 ///
 /// Vulkan: Corresponds to `vk::SamplerAddressMode`
-/// https://registry.khronos.org/vulkan/specs/1.3-extensions/man/html/VkSamplerAddressMode.html
+/// <https://registry.khronos.org/vulkan/specs/1.3-extensions/man/html/VkSamplerAddressMode.html>
 #[derive(Default, Clone, Copy, Debug, Eq, PartialEq)]
 pub enum WrappingMode {
     /// Corresponds to `GL_CLAMP_TO_EDGE` or `vk::SamplerAddressMode::CLAMP_TO_EDGE`.
     ClampToEdge = 1,
 
-    /// Corresponds to `GL_MIRRORED_REPEAT` or `vk::SamplerAddressMode::MIRRORED_REPEAT.
+    /// Corresponds to [`GL_MIRRORED_REPEAT`] or [`vk::SamplerAddressMode::MIRRORED_REPEAT`].
     MirroredRepeat,
 
     /// Corresponds to `GL_REPEAT` or `vk::SamplerAddressMode::REPEAT`.
@@ -287,7 +303,7 @@ pub enum AlphaMode {
 /// # Rendering
 ///
 /// Vulkan: Corresponds to `vk::PrimitiveTopology`
-/// https://registry.khronos.org/vulkan/specs/1.3-extensions/man/html/VkPrimitiveTopology.html
+/// <https://registry.khronos.org/vulkan/specs/1.3-extensions/man/html/VkPrimitiveTopology.html>
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum RenderMode {
     /// Corresponds to `GL_POINTS` or `vk::PrimitiveTopology::POINT_LIST`.
@@ -296,19 +312,19 @@ pub enum RenderMode {
     /// Corresponds to `GL_LINES` or `vk::PrimitiveTopology::LINE_LIST`.
     Lines,
 
-    /// Corresponds to `GL_LINE_LOOP or `vk::PrimitiveTopology::LINE_LIST``.
+    /// Corresponds to [`GL_LINE_LOOP`] or [`vk::PrimitiveTopology::LINE_LIST`].
     LineLoop,
 
     /// Corresponds to `GL_LINE_STRIP` or `vk::PrimitiveTopology::LINE_STRIP`.
     LineStrip,
 
-    /// Corresponds to `GL_TRIANGLES` or `vk::PrimitiveTopology::TRIANGLE_LIST.
+    /// Corresponds to `GL_TRIANGLES` or `vk::PrimitiveTopology::TRIANGLE_LIST`.
     Triangles,
 
-    /// Corresponds to `GL_TRIANGLE_STRIP`or `vk::PrimitiveTopology::TRIANGLE_STRIP.
+    /// Corresponds to `GL_TRIANGLE_STRIP`or `vk::PrimitiveTopology::TRIANGLE_STRIP`.
     TriangleStrip,
 
-    /// Corresponds to `GL_TRIANGLE_FAN` or `vk::PrimitiveTopology::TRIANGLE_FAN.
+    /// Corresponds to `GL_TRIANGLE_FAN` or `vk::PrimitiveTopology::TRIANGLE_FAN`.
     TriangleFan,
 }
 
@@ -326,7 +342,7 @@ pub struct Vertex {
 /// # Rendering
 ///
 /// Vulkan: Corresponds to `vk::IndexType`
-/// https://registry.khronos.org/vulkan/specs/1.3-extensions/man/html/VkIndexType.html
+/// <https://registry.khronos.org/vulkan/specs/1.3-extensions/man/html/VkIndexType.html>
 pub enum Indices {
     U8(Vec<u8>),
     U16(Vec<u16>),

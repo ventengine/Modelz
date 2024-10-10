@@ -27,12 +27,12 @@ pub fn load(path: &Path) -> Result<Model3D, ModelError> {
             i + 1,
             len,
         );
-        materials.push(load_material(path, material, &buffer_data)?);
+        materials.push(load_material(path, &material, &buffer_data));
     }
 
     let mut meshes = Vec::new();
     for mesh in gltf.document.meshes() {
-        meshes.append(&mut load_mesh(mesh, &buffer_data))
+        meshes.append(&mut load_mesh(&mesh, &buffer_data));
     }
 
     Ok(Model3D {
@@ -44,12 +44,12 @@ pub fn load(path: &Path) -> Result<Model3D, ModelError> {
 
 fn load_material<'a>(
     model_dir: &'a Path,
-    material: gltf::Material<'a>,
+    material: &gltf::Material<'a>,
     buffer_data: &'a [gltf::buffer::Data],
-) -> Result<crate::Material, ModelError> {
+) -> crate::Material {
     let pbr = material.pbr_metallic_roughness();
 
-    let diffuse_texture = if let Some(texture) = pbr.base_color_texture() {
+    let diffuse_texture = pbr.base_color_texture().map(|ref texture| {
         let texture = texture.texture();
         match texture.source().source() {
             gltf::image::Source::View { view, mime_type } => {
@@ -63,40 +63,38 @@ fn load_material<'a>(
                     data: encoded_image.to_vec(), // idk
                     mime_type: Some(mime_type.to_string()),
                 };
-                Some(crate::Texture {
+                crate::Texture {
                     image,
                     sampler: convert_sampler(&sampler),
-                    name: texture.name().map(|s| s.to_string()),
-                })
+                    name: texture.name().map(std::string::ToString::to_string),
+                }
             }
             gltf::image::Source::Uri { uri, mime_type } => {
                 let sampler = texture.sampler();
 
                 let image = crate::Image::Path {
                     path: model_dir.join(uri),
-                    mime_type: mime_type.map(|s| s.to_string()),
+                    mime_type: mime_type.map(std::string::ToString::to_string),
                 };
 
-                Some(crate::Texture {
+                crate::Texture {
                     image,
                     sampler: convert_sampler(&sampler),
-                    name: texture.name().map(|s| s.to_string()),
-                })
+                    name: texture.name().map(std::string::ToString::to_string),
+                }
             }
         }
-    } else {
-        None
-    };
+    });
     let alpha_mode = convert_alpha_mode(material.alpha_mode());
 
-    Ok(crate::Material {
+    crate::Material {
         diffuse_texture,
         alpha_mode,
         double_sided: material.double_sided(),
-        name: material.name().map(|s| s.to_string()),
+        name: material.name().map(std::string::ToString::to_string),
         base_color: Some(pbr.base_color_factor()),
         alpha_cutoff: material.alpha_cutoff(),
-    })
+    }
 }
 
 fn convert_sampler<'a>(sampler: &'a gltf::texture::Sampler<'a>) -> crate::Sampler {
@@ -122,7 +120,7 @@ fn convert_sampler<'a>(sampler: &'a gltf::texture::Sampler<'a>) -> crate::Sample
         min_filter,
         wrap_s,
         wrap_t,
-        name: sampler.name().map(|s| s.to_string()),
+        name: sampler.name().map(std::string::ToString::to_string),
     }
 }
 
@@ -175,7 +173,7 @@ const fn convert_mode(mode: gltf::mesh::Mode) -> crate::RenderMode {
 //     });
 // }
 
-fn load_mesh(mesh: Mesh, buffer_data: &[gltf::buffer::Data]) -> Vec<crate::Mesh> {
+fn load_mesh(mesh: &Mesh, buffer_data: &[gltf::buffer::Data]) -> Vec<crate::Mesh> {
     let mut meshes = Vec::new();
     for (i, primitive) in mesh.primitives().enumerate() {
         log::debug!(
@@ -189,8 +187,8 @@ fn load_mesh(mesh: Mesh, buffer_data: &[gltf::buffer::Data]) -> Vec<crate::Mesh>
             indices,
             mode: convert_mode(primitive.mode()),
             material_index: primitive.material().index(),
-            name: mesh.name().map(|s| s.to_string()),
-        })
+            name: mesh.name().map(std::string::ToString::to_string),
+        });
     }
     meshes
 }
@@ -218,13 +216,19 @@ fn load_primitive<'a>(
         }
     }
 
-    if let Some(color_attribute) = reader.read_colors(0).map(|v| v.into_rgba_f32()) {
+    if let Some(color_attribute) = reader
+        .read_colors(0)
+        .map(gltf::mesh::util::ReadColors::into_rgba_f32)
+    {
         for (color_index, color) in color_attribute.enumerate() {
             vertices[color_index].color = Some(color);
         }
     }
 
-    if let Some(tex_coord_attribute) = reader.read_tex_coords(0).map(|v| v.into_f32()) {
+    if let Some(tex_coord_attribute) = reader
+        .read_tex_coords(0)
+        .map(gltf::mesh::util::ReadTexCoords::into_f32)
+    {
         for (tex_coord_index, tex_coord) in tex_coord_attribute.enumerate() {
             vertices[tex_coord_index].tex_coord = Some(tex_coord);
         }

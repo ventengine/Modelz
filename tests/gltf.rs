@@ -6,7 +6,7 @@ mod gltf {
     fn load_gltf() {
         let model_path = concat!(env!("CARGO_MANIFEST_DIR"), "/tests/cube.glb");
 
-        let model = Model3D::from_format(model_path, modelz::ModelFormat::GLTF)
+        let model = Model3D::from_format(model_path, &modelz::ModelFormat::GLTF)
             .expect("Failed to load gltf model");
         for mesh in model.meshes {
             println!("{}", mesh.name.unwrap());

@@ -22,9 +22,7 @@ struct Vertex {
 
 impl PropertyAccess for Vertex {
     fn new() -> Self {
-        Vertex {
-            ..Default::default()
-        }
+        Self::default()
     }
     fn set_property(&mut self, key: String, property: Property) {
         match (key.as_ref(), property) {
@@ -38,7 +36,7 @@ impl PropertyAccess for Vertex {
             // NOTE: Blender3D exports texture coordinates as s,t tuples
             ("u" | "s" | "tx" | "texture_u", Property::Float(v)) => self.tex_x = Some(v),
             ("v" | "t" | "ty" | "texture_v", Property::Float(v)) => self.tex_y = Some(v),
-            (k, _) => eprintln!("Vertex: Unexpected key/value combination: key: {}", k),
+            (k, _) => eprintln!("Vertex: Unexpected key/value combination: key: {k}"),
         }
     }
 }
@@ -50,14 +48,14 @@ struct Face {
 
 impl PropertyAccess for Face {
     fn new() -> Self {
-        Face {
+        Self {
             vertex_index: Vec::new(),
         }
     }
     fn set_property(&mut self, key: String, property: Property) {
         match (key.as_ref(), property) {
             ("vertex_index" | "vertex_indices", Property::ListUInt(vec)) => self.vertex_index = vec,
-            (k, _) => eprintln!("Face: Unexpected key/value combination: key: {}", k),
+            (k, _) => eprintln!("Face: Unexpected key/value combination: key: {k}"),
         }
     }
 }
@@ -106,13 +104,13 @@ pub fn load(path: &Path) -> Result<Model3D, ModelError> {
         if let Some(x) = vertex.x_norm {
             if let Some(y) = vertex.z_norm {
                 if let Some(z) = vertex.z_norm {
-                    normal = Some([x, y, z])
+                    normal = Some([x, y, z]);
                 }
             }
         }
         if let Some(x) = vertex.tex_x {
             if let Some(y) = vertex.tex_y {
-                tex_coord = Some([x, y])
+                tex_coord = Some([x, y]);
             }
         }
 
@@ -125,13 +123,13 @@ pub fn load(path: &Path) -> Result<Model3D, ModelError> {
         if let Some(x) = vertex1.x_norm {
             if let Some(y) = vertex1.z_norm {
                 if let Some(z) = vertex1.z_norm {
-                    normal = Some([x, y, z])
+                    normal = Some([x, y, z]);
                 }
             }
         }
         if let Some(x) = vertex1.tex_x {
             if let Some(y) = vertex1.tex_y {
-                tex_coord = Some([x, y])
+                tex_coord = Some([x, y]);
             }
         }
         let v2 = crate::Vertex {
@@ -143,13 +141,13 @@ pub fn load(path: &Path) -> Result<Model3D, ModelError> {
         if let Some(x) = vertex2.x_norm {
             if let Some(y) = vertex2.z_norm {
                 if let Some(z) = vertex2.z_norm {
-                    normal = Some([x, y, z])
+                    normal = Some([x, y, z]);
                 }
             }
         }
         if let Some(x) = vertex2.tex_x {
             if let Some(y) = vertex2.tex_y {
-                tex_coord = Some([x, y])
+                tex_coord = Some([x, y]);
             }
         }
         let v3 = crate::Vertex {
