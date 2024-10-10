@@ -6,7 +6,7 @@ author = "Alexander Medvedev"
 description = "A library to load various 3D file formats into a shared, in-memory representation"
 readme = "README.md"
 license = "MIT"
-keywords = ["model", "gltf", "obj", "assimp", "ply", "stl"]
+keywords = ["gltf", "obj", "assimp", "ply", "stl"]
 categories = ["rendering::data-formats", "graphics", "game-development"]
 repository = "https://github.com/ventengine/Modelz"
 
